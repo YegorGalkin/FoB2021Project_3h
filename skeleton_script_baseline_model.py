@@ -26,53 +26,33 @@ def parse_args():
 
     return parser.parse_args()
 
-def parse_blosum(path):
+
+def parse_blosum(path: str):
     """
         Reads BLOSUM62 matrix file and stores in a 2-dimensional dictionary.
-        :param path: a str with the BLOSUM62 substitution matrix file path
+        :param path: BLOSUM62 substitution matrix file path
         :return: a 2-dimensional dict with amino acid (AA) substitution scores
     """
+    # Read all lines from file
+    with open(path, "r") as f:
+        lines = f.readlines()
 
-    aas = []
-    aa_scores = []
-    with open(path, "rb") as f:
-        for line in f:
-            # Convert bytes to str
-            line = line.decode('UTF-8')
-            # Skip headers
-            if line.startswith('#') or line.startswith('x'):
-                continue
-            # Store AAs and scores (matrix is symmetric)
-            else:
-                aas.append(line.strip('\n').split()[0])
-                aa_scores.append(line.strip('\n').split()[1:len(line)])
+    # Remove column names and header
+    cleaned_lines = [line.strip() for line in lines if not line.startswith('#') and not line.startswith('x')]
 
-    # Create a 2-dimensional dictionary with AAs as keys and empty dictionaries as values
-    blosum_dict = {}
-    for aa in aas:
-        blosum_dict[aa] = {}
+    # Get aminoacids from first column. Matrix is symmetric.
+    aas = [line.split()[0] for line in cleaned_lines]
 
-    #########################
-    ### START CODING HERE ###
-    #########################
-    # You need to fill in the dictionaries in blosum_dict for each key AA (amino acid) with the corresponding
-    # substitution scores between that AA and any other AA.
-    # Use aas list to loop over all amino acids:
-    # for i in range(len(aas)):
-        # Now loop over each score position for the AA with position i which are stored in the i-th list of aa_scores.
-        # These are the BLOSUM62 scores between the AA with position i and the AA with position j:
-        # for j in range(...):
-            # Get the score between the AA with position i and the AA with position j from aa_scores:
-            # score = ...
+    # Get list of lists of scores converted to int. Skipped first column
+    scores = [[int(ele) for ele in line.split()[1:]] for line in cleaned_lines]
 
-            # For the dictionary of the i-th AA key of blosum_dict, store the j-th AA as a key and the score as a value:
-            # blosum_dict... = ...
+    # Create dictionary of dictionaries with scores using aminoacids list as columns and rows.
+    scores_dict = dict()
+    for i, aa in enumerate(aas):
+        scores_dict[aa] = {key: value for (key, value) in zip(aas, scores[i])}
 
-    #########################
-    ###  END CODING HERE  ###
-    #########################
+    return scores_dict
 
-    return blosum_dict
 
 def parse_vep(path):
     """
@@ -112,6 +92,7 @@ def parse_vep(path):
                 #########################
     return hgvs_ids, ref_aas, mut_aas
 
+
 def run_baseline(hgvs_ids, ref_aas, mut_aas, blosum_dict):
     """
         Computes substitution scores for a dataset of SNPs using BLOSUM62 matrix.
@@ -147,6 +128,7 @@ def run_baseline(hgvs_ids, ref_aas, mut_aas, blosum_dict):
     #########################
 
     return scores
+
 
 def write_data(hgvs_ids, scores, out_filepath):
     """
