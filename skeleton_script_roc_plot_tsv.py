@@ -14,7 +14,6 @@
 
 """
 
-
 import argparse
 import os
 import sys
@@ -38,6 +37,7 @@ def parse_args():
     parser.add_argument("-o", "--output_png", help="output .png file path. This arguments is required!", required=True)
 
     return parser.parse_args()
+
 
 def parse_tsv_file(filename):
     """
@@ -70,6 +70,7 @@ def parse_tsv_file(filename):
             tpr.append(float(arr[1]))
     return fpr, tpr
 
+
 def integrate(fpr, tpr):
     """
         Calculate the Area Under the Curve (AUC) for a given list of coordinates.
@@ -86,8 +87,8 @@ def integrate(fpr, tpr):
         #########################
         ### START CODING HERE ###
         #########################
-        # Just copy and paste the code lines which you have completed in skeleton_script_create_roc_plot.py
-
+        # Trapezoid rule
+        auc += (cur_fpr - last_tpr)(cur_fpr - last_fpr) / 2
         #########################
         ###  END CODING HERE  ###
         #########################
@@ -95,6 +96,7 @@ def integrate(fpr, tpr):
         last_tpr = cur_tpr
 
     return auc
+
 
 def roc_plot_together(list_fpr, list_tpr, labels, out_filepath, title):
     """
@@ -107,7 +109,7 @@ def roc_plot_together(list_fpr, list_tpr, labels, out_filepath, title):
     """
 
     lw = 1
-    list_color = ['g','r','m']
+    list_color = ['g', 'r', 'm']
     figure, axes = matplotlib.pyplot.subplots(1, 1)
 
     for tpr, fpr, color, label in zip(list_tpr, list_fpr, list_color, labels):
@@ -158,7 +160,6 @@ def main():
             list_fpr.append(fpr)
             list_tpr.append(tpr)
         roc_plot_together(list_fpr, list_tpr, labels, out_filepath, title)
-
 
 
 if __name__ == "__main__":

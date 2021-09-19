@@ -49,6 +49,7 @@ def parse_args():
 
     return parser.parse_args()
 
+
 def parse_predictor(filename):
     """
         Parses scores of every HGVS ID out of the predictor input file.
@@ -95,6 +96,7 @@ def parse_predictor(filename):
     f.close()
     return predictor_dict
 
+
 def parse_benchmark(filename):
     """
         Parses every HGVS classification out of the benchmark file.
@@ -104,7 +106,7 @@ def parse_benchmark(filename):
 
     benchmark_dict = {}
 
-    with open(filename,'r') as f:
+    with open(filename, 'r') as f:
         # Total bytes in the file (end of file)
         eof = f.seek(0, 2)
         # Go to the beginning of the file again
@@ -130,6 +132,7 @@ def parse_benchmark(filename):
 
     return benchmark_dict
 
+
 def count_total_results(predictor_score_dict, benchmark_dict):
     """
         Calculates the total number of positives (P), or benign results, and negatives (N), or pathogenic results.
@@ -148,6 +151,7 @@ def count_total_results(predictor_score_dict, benchmark_dict):
             benign += 1
     return [benign, pathogenic]
 
+
 def calculate_coordinates(predictor_score_dict, benchmark_dict, out_filepath):
     """
         Calculates coordinates of x and y based on the predictor scores.
@@ -164,14 +168,11 @@ def calculate_coordinates(predictor_score_dict, benchmark_dict, out_filepath):
     #########################
     ### START CODING HERE ###
     #########################
-    # You need to sort the scores in the correct order for the ROC plot.
-    # Use the following if-statement and replace the question mark with the type of the predictor.
-    # It will put the ROC curve at the correct side of the diagonal line.
 
-    # if type_predictor == ? :
-    #     sorted_score_hgvs_pairs = sorted(score_hgvs_pairs)
-    # else:
-    #     sorted_score_hgvs_pairs = sorted(score_hgvs_pairs, reverse=True)
+    if type_predictor == 'polyphen':
+        sorted_score_hgvs_pairs = sorted(score_hgvs_pairs)
+    else:
+        sorted_score_hgvs_pairs = sorted(score_hgvs_pairs, reverse=True)
 
     #########################
     ###  END CODING HERE  ###
@@ -218,6 +219,10 @@ def calculate_coordinates(predictor_score_dict, benchmark_dict, out_filepath):
         #    Benign  -> actual positive, thus a true positive (y-coordinate)
 
         # Increase the respective value of num_benign or num_pathogenic
+        if benchmark_dict[hgvs] == 'Benign':
+            num_benign += 1
+        else:
+            num_pathogenic += 1
 
         # Now, you need to calculate TPR and FPR for unique scores as TP/P and FP/N, respectively,
         # using num_benign, num_pathogenic, total_benign, and total_pathogenic correctly. Append the values
@@ -225,6 +230,10 @@ def calculate_coordinates(predictor_score_dict, benchmark_dict, out_filepath):
         # Calculate the rates if HGVS score index i is the index of the score before a breakpoint
         # (use index_prebreakpoint_score). Also, append the score to coordinate_score.
 
+        if i in index_prebreakpoint_score:
+            tpr.append(num_benign / total_benign)
+            fpr.append(num_pathogenic / total_pathogenic)
+            coordinate_score.append(score)
 
         #########################
         ###  END CODING HERE  ###
@@ -237,6 +246,7 @@ def calculate_coordinates(predictor_score_dict, benchmark_dict, out_filepath):
                 f.write(str(a) + '\t' + str(b) + '\n')
 
     return tpr, fpr, coordinate_score
+
 
 def integrate(fpr, tpr):
     """
@@ -254,7 +264,8 @@ def integrate(fpr, tpr):
         #########################
         ### START CODING HERE ###
         #########################
-        # Calculate AUC
+        # Trapezoid rule
+        auc += (cur_fpr - last_tpr) (cur_fpr-last_fpr)/2
 
         #########################
         ###  END CODING HERE  ###
@@ -264,7 +275,8 @@ def integrate(fpr, tpr):
 
     return auc
 
-def roc_plot(tpr, fpr, coordinator_score, out_filepath, color = False):
+
+def roc_plot(tpr, fpr, coordinator_score, out_filepath, color=False):
     """
        Draws ROC plot with gradient color.
        :param tpr: a list of TPRs
@@ -297,6 +309,7 @@ def roc_plot(tpr, fpr, coordinator_score, out_filepath, color = False):
     axes.set_title('AUC = %.3f' % auc)
     matplotlib.pyplot.savefig(out_filepath)
 
+
 def roc_plot_together(list_tpr, list_fpr, labels, out_filepath):
     """
        Draws ROC plot for three predictors in one figure without gradient color.
@@ -307,7 +320,7 @@ def roc_plot_together(list_tpr, list_fpr, labels, out_filepath):
     """
 
     lw = 1
-    list_color = ['g','r','m']
+    list_color = ['g', 'r', 'm']
     figure, axes = matplotlib.pyplot.subplots(1, 1)
 
     for tpr, fpr, color, label in zip(list_tpr, list_fpr, list_color, labels):
@@ -322,6 +335,7 @@ def roc_plot_together(list_tpr, list_fpr, labels, out_filepath):
     axes.set_xlabel('False Positive Rate')
     axes.set_ylabel('True Positive Rate')
     matplotlib.pyplot.savefig(out_filepath)
+
 
 def colorline(x, y, z=None, axes=None, cmap=matplotlib.pyplot.get_cmap('coolwarm'), linewidth=3, alpha=1.0, **kwargs):
     """
@@ -369,7 +383,6 @@ def colorline(x, y, z=None, axes=None, cmap=matplotlib.pyplot.get_cmap('coolwarm
 
 
 def main():
-
     # Process arguments
     args = parse_args()
     predictor_path = args.input_predictor
@@ -400,7 +413,7 @@ def main():
 
     elif len(predictor_path) != 3:
         sys.exit('ERROR: to plot three predictors (baseline, sift, and polyphen) all together, '
-              'please input three files by adding -ipred before each file')
+                 'please input three files by adding -ipred before each file')
 
     else:
         # Lists to store labels and coordinates for three predictors
