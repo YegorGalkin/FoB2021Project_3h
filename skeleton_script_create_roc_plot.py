@@ -265,7 +265,7 @@ def integrate(fpr, tpr):
         ### START CODING HERE ###
         #########################
         # Trapezoid rule
-        auc += (cur_fpr - last_tpr) (cur_fpr-last_fpr)/2
+        auc += (cur_fpr - last_fpr) * (cur_tpr+last_tpr)/2
 
         #########################
         ###  END CODING HERE  ###
